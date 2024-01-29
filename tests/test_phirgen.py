@@ -6,15 +6,18 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import json
+from json import JSONDecodeError
+
+import deal
 
 from pytket.circuit import Circuit
 from pytket.phir.api import pytket_to_phir
 
 
 class TestPhirGen:
+    @deal.has("stdout")
+    @deal.raises(AssertionError, JSONDecodeError, KeyError, TypeError)
     def test_classicalexpbox(self) -> None:
         """From https://github.com/CQCL/pytket-phir/issues/86 ."""
         circ = Circuit(1)
@@ -30,6 +33,8 @@ class TestPhirGen:
             "args": [{"cop": "+", "args": ["a", "b"]}],
         }
 
+    @deal.has("stdout")
+    @deal.raises(AssertionError, JSONDecodeError, KeyError, TypeError)
     def test_nested_arith(self) -> None:
         """From https://github.com/CQCL/pytket-phir/issues/87 ."""
         circ = Circuit(1)
@@ -45,6 +50,8 @@ class TestPhirGen:
             "args": [{"cop": "+", "args": ["a", {"cop": "/", "args": ["b", "c"]}]}],
         }
 
+    @deal.has("stdout")
+    @deal.raises(AssertionError, JSONDecodeError, KeyError, TypeError)
     def test_arith_with_int(self) -> None:
         """From https://github.com/CQCL/pytket-phir/issues/88 ."""
         circ = Circuit(1)
@@ -58,6 +65,8 @@ class TestPhirGen:
             "args": [{"cop": "<<", "args": ["a", 1]}],
         }
 
+    @deal.has("stdout")
+    @deal.raises(AssertionError, JSONDecodeError, KeyError, TypeError)
     def test_bitwise_ops(self) -> None:
         """From https://github.com/CQCL/pytket-phir/issues/91 ."""
         circ = Circuit(1)

@@ -9,6 +9,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import deal
+
 if TYPE_CHECKING:
     from pytket.circuit import OpType
 
@@ -30,6 +32,7 @@ class MachineTimings:
 class Machine:
     """A machine info class for testing."""
 
+    @deal.pure
     def __init__(
         self,
         size: int,

@@ -6,13 +6,12 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import json
 import logging
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Any, TypeAlias
 
+import deal
 from typing_extensions import assert_never
 
 import pytket.circuit as tk
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-JsonDict: TypeAlias = dict[str, Any]
+JsonDict: TypeAlias = dict[str, Any]  # type: ignore[misc]
 PHIR_HEADER: JsonDict = {
     "format": "PHIR/JSON",
     "version": "0.1.0",
@@ -82,13 +81,15 @@ tket_gate_to_phir = {
 }  # fmt: skip
 
 
+@deal.pure
 def arg_to_bit(arg: "UnitID") -> Bit:
     """Convert tket arg to Bit."""
     return [arg.reg_name, arg.index[0]]
 
 
+@deal.pure
 def assign_cop(
-    lhs: list[Var] | list[Bit], rhs: "Sequence[Var | int | JsonDict]"
+    lhs: list[Var] | list[Bit], rhs: "Sequence[Var | int | JsonDict | Bit]"
 ) -> JsonDict:
     """PHIR for classical assign operation."""
     return {
@@ -98,6 +99,8 @@ def assign_cop(
     }
 
 
+@deal.has()
+@deal.raises(AssertionError, TypeError, ValueError)
 def classical_op(exp: LogicExp, *, bitwise: bool = False) -> JsonDict:
     """PHIR for classical register operations."""
     match exp.op:
@@ -165,6 +168,8 @@ def classical_op(exp: LogicExp, *, bitwise: bool = False) -> JsonDict:
     }
 
 
+@deal.raises(KeyError, NotImplementedError, TypeError, ValueError, AssertionError)
+@deal.has()
 def convert_subcmd(op: tk.Op, cmd: tk.Command) -> JsonDict | None:
     """Return PHIR dict give op and its arguments."""
     if op.is_gate():
@@ -292,6 +297,8 @@ def convert_subcmd(op: tk.Op, cmd: tk.Command) -> JsonDict | None:
     return out
 
 
+@deal.has("io")
+@deal.raises(KeyError, NotImplementedError, ValueError, TypeError)
 def append_cmd(cmd: tk.Command, ops: list[JsonDict]) -> None:
     """Convert a pytket command to a PHIR command and append to `ops`.
 
@@ -305,6 +312,7 @@ def append_cmd(cmd: tk.Command, ops: list[JsonDict]) -> None:
         ops.append(op)
 
 
+@deal.pure
 def create_wasm_op(cmd: tk.Command, wasm_op: tk.WASMOp) -> JsonDict:
     """Creates a PHIR operation for a WASM command."""
     args, returns = extract_wasm_args_and_returns(cmd, wasm_op)
@@ -322,6 +330,7 @@ def create_wasm_op(cmd: tk.Command, wasm_op: tk.WASMOp) -> JsonDict:
     return op
 
 
+@deal.pure
 def extract_wasm_args_and_returns(
     command: tk.Command, op: tk.WASMOp
 ) -> tuple[list[str], list[str]]:
@@ -336,11 +345,13 @@ def extract_wasm_args_and_returns(
     )
 
 
+@deal.pure
 def dedupe_bits_to_registers(bits: "Sequence[UnitID]") -> list[str]:
     """Dedupes a list of bits to their registers, keeping order intact."""
     return list(dict.fromkeys([bit.reg_name for bit in bits]))
 
 
+@deal.pure
 def make_comment_text(command: tk.Command, op: tk.Op) -> str:
     """Converts a command + op to the PHIR comment spec."""
     match op:
@@ -356,6 +367,7 @@ def make_comment_text(command: tk.Command, op: tk.Op) -> str:
     return str(command)
 
 
+@deal.pure
 def get_decls(qbits: set["Qubit"], cbits: set[tkBit]) -> list[dict[str, str | int]]:
     """Format the qvar and cvar define PHIR elements."""
     # TODO(kartik): this may not always be accurate
@@ -394,6 +406,8 @@ def get_decls(qbits: set["Qubit"], cbits: set[tkBit]) -> list[dict[str, str | in
     return decls
 
 
+@deal.has("io")
+@deal.raises(KeyError, NotImplementedError, ValueError, TypeError)
 def genphir(
     inp: list[tuple["Ordering", "ShardLayer", "Cost"]], *, machine_ops: bool = True
 ) -> str:

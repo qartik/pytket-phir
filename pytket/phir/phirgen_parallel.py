@@ -6,12 +6,12 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import json
 import logging
 from collections import OrderedDict
 from typing import TYPE_CHECKING
+
+import deal
 
 import pytket.circuit as tk
 from phir.model import PHIRModel
@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@deal.pure
 def exec_order_preserved_helper(
     ordered_dict: OrderedDict["UnitID", int], group_number: int, qubit_last_group: int
 ) -> bool:
@@ -49,6 +50,7 @@ def exec_order_preserved_helper(
     return order_preserved
 
 
+@deal.pure
 def process_sub_commands(
     sub_commands: dict["UnitID", list[tk.Command]], max_parallel_sq_gates: int
 ) -> dict[int, list[tk.Command]]:
@@ -133,6 +135,8 @@ def process_sub_commands(
     return dict(groups.items())
 
 
+@deal.has("io")
+@deal.safe
 def groups2qops(groups: dict[int, list[tk.Command]], ops: list["JsonDict"]) -> None:  # noqa: PLR0912
     """Convert the groups of parallel ops to properly formatted PHIR."""
     for group in groups.values():
@@ -178,6 +182,7 @@ def groups2qops(groups: dict[int, list[tk.Command]], ops: list["JsonDict"]) -> N
                 ops.extend((comment, phir_qop))
 
 
+@deal.pure
 def process_shards(
     shard_layer: "ShardLayer", max_parallel_tq_gates: int, max_parallel_sq_gates: int
 ) -> dict[int, list["Shard"]]:
@@ -224,6 +229,7 @@ def process_shards(
     return dict(sorted(groups.items()))
 
 
+@deal.pure
 def consolidate_sub_commands(
     groups: dict[int, list["Shard"]],
 ) -> dict[int, list["Shard"]]:
@@ -244,6 +250,8 @@ def consolidate_sub_commands(
     return groups
 
 
+@deal.has("io")
+@deal.safe
 def format_and_add_primary_commands(
     group: list["Shard"], ops: list["JsonDict"]
 ) -> None:
@@ -285,6 +293,8 @@ def format_and_add_primary_commands(
             groups2qops(fmt_g2q, ops)
 
 
+@deal.safe
+@deal.has("io")
 def genphir_parallel(
     inp: list[tuple["Ordering", "ShardLayer", "Cost"]], machine: "Machine"
 ) -> str:

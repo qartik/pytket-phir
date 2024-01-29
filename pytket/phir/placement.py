@@ -9,12 +9,15 @@
 import bisect
 import math
 
+import deal
+
 from .routing import inverse
 
 
 class GateOpportunitiesError(Exception):
     """Exception raised when gating zones cannot accommodate all operations."""
 
+    @deal.pure
     def __init__(self) -> None:
         super().__init__("Not enough gating opportunities for all ops in this layer")
 
@@ -22,6 +25,7 @@ class GateOpportunitiesError(Exception):
 class InvalidParallelOpsError(Exception):
     """Raised when a layer tries to gate the same qubit more than once in parallel."""
 
+    @deal.pure
     def __init__(self, q: int) -> None:
         super().__init__(f"Cannot gate qubit {q} more than once in the same layer")
 
@@ -29,10 +33,12 @@ class InvalidParallelOpsError(Exception):
 class PlacementCheckError(Exception):
     """Exception raised when placement check fails."""
 
+    @deal.pure
     def __init__(self) -> None:
         super().__init__("Placement Check Failed")
 
 
+@deal.pure
 def placement_check(
     ops: list[list[int]],
     tq_options: set[int],
@@ -67,6 +73,8 @@ def placement_check(
     return placement_valid
 
 
+@deal.has()
+@deal.raises(ValueError)
 def nearest(zone: int, options: set[int]) -> int:
     """Return the nearest available zone to the given zone."""
     lst = sorted(options)
@@ -84,6 +92,8 @@ def nearest(zone: int, options: set[int]) -> int:
     return nearest_zone
 
 
+@deal.has()
+@deal.raises(InvalidParallelOpsError, ValueError, ZeroDivisionError)
 def place_tq_ops(
     tq_ops: list[list[int]],
     placed_qubits: set[int],
@@ -114,6 +124,14 @@ def place_tq_ops(
     return order
 
 
+@deal.has()
+@deal.raises(
+    GateOpportunitiesError,
+    InvalidParallelOpsError,
+    PlacementCheckError,
+    ValueError,
+    ZeroDivisionError,
+)
 def place(  # noqa: PLR0912
     ops: list[list[int]],
     tq_options: set[int],
@@ -139,7 +157,7 @@ def place(  # noqa: PLR0912
             sq_ops.append(op)
 
     # sort the tq_ops by distance apart [[furthest] -> [closest]]
-    tq_ops_sorted = sorted(tq_ops, key=lambda x: abs(x[0] - x[1]), reverse=True)  # type: ignore [misc]
+    tq_ops_sorted = sorted(tq_ops, key=lambda x: abs(x[0] - x[1]), reverse=True)
 
     # check to make sure that there are zones available for all ops
     if len(tq_ops) > len(tq_zones):
@@ -180,6 +198,14 @@ def place(  # noqa: PLR0912
     raise PlacementCheckError
 
 
+@deal.has()
+@deal.raises(
+    GateOpportunitiesError,
+    InvalidParallelOpsError,
+    PlacementCheckError,
+    ValueError,
+    ZeroDivisionError,
+)
 def optimized_place(
     ops: list[list[int]],
     tq_options: set[int],
@@ -206,7 +232,7 @@ def optimized_place(
             sq_ops.append(op)
 
     # sort the tq_ops by distance apart [[furthest] -> [closest]]
-    tq_ops_sorted = sorted(tq_ops, key=lambda x: abs(x[0] - x[1]), reverse=True)  # type: ignore [misc]
+    tq_ops_sorted = sorted(tq_ops, key=lambda x: abs(x[0] - x[1]), reverse=True)
 
     # check to make sure that there are zones available for all ops
     if len(tq_ops) > len(tq_zones):

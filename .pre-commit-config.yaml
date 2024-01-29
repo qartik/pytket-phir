@@ -43,6 +43,7 @@ repos:
       pass_filenames: false
       args: [--package=pytket.phir, --package=tests]
       additional_dependencies: [
+        deal,
         phir,
         pytest,
         pytket-quantinuum,

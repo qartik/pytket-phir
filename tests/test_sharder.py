@@ -5,8 +5,9 @@
 # license that can be found in the LICENSE file.
 #
 ##############################################################################
-
 from typing import cast
+
+import deal
 
 from pytket.circuit import Conditional, Op, OpType
 from pytket.phir.sharding.sharder import Sharder
@@ -15,6 +16,8 @@ from .test_utils import QasmFile, get_qasm_as_circuit
 
 
 class TestSharder:
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_shard_hashing(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.baby)
         shards = Sharder(circuit).shard()
@@ -26,6 +29,8 @@ class TestSharder:
         shard_set.add(first_shard)
         assert len(shard_set) == 3
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_should_op_create_shard(self) -> None:
         expected_true: list[Op] = [
             Op.create(OpType.Measure),
@@ -44,6 +49,8 @@ class TestSharder:
         for op in expected_false:
             assert not Sharder.should_op_create_shard(op)
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_with_baby_circuit(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.baby)
         shards = Sharder(circuit).shard()
@@ -66,6 +73,8 @@ class TestSharder:
         assert len(shards[2].sub_commands) == 0
         assert shards[2].depends_upon == {shards[0].ID}
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_rollup_behavior(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.baby_with_rollup)
         shards = Sharder(circuit).shard()
@@ -101,6 +110,8 @@ class TestSharder:
         assert len(shards[4].sub_commands) == 1
         assert shards[4].depends_upon == {shards[2].ID}
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_simple_conditional(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.simple_cond)
         shards = Sharder(circuit).shard()
@@ -147,6 +158,8 @@ class TestSharder:
         assert cast(Conditional, s2_sub_cmds[0].op).op.type == OpType.H
         assert s2_sub_cmds[0].qubits == [circuit.qubits[0]]
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_complex_barriers(self) -> None:  # noqa: PLR0915
         circuit = get_qasm_as_circuit(QasmFile.barrier_complex)
         shards = Sharder(circuit).shard()
@@ -231,6 +244,8 @@ class TestSharder:
         assert shards[6].bits_read == {circuit.bits[2]}
         assert shards[6].depends_upon == {shards[5].ID}
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_classical_hazards(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.classical_hazards)
         shards = Sharder(circuit).shard()
@@ -278,6 +293,8 @@ class TestSharder:
         assert shards[4].bits_read == {circuit.bits[0], circuit.bits[2]}
         assert shards[4].depends_upon == {shards[1].ID, shards[3].ID}
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_with_big_gate(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.big_gate)
         shards = Sharder(circuit).shard()
@@ -301,6 +318,8 @@ class TestSharder:
         assert shards[1].qubits_used == {circuit.qubits[3]}
         assert shards[1].bits_written == {circuit.bits[0]}
 
+    @deal.has()
+    @deal.raises(AssertionError)
     def test_classical_ordering_breaking_circuit(self) -> None:
         circuit = get_qasm_as_circuit(QasmFile.classical_ordering)
         shards = Sharder(circuit).shard()

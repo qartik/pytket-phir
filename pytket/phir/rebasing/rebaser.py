@@ -8,14 +8,18 @@
 
 from typing import TYPE_CHECKING
 
+import deal
+
 from pytket.passes import DecomposeBoxes
-from pytket.passes.auto_rebase import auto_rebase_pass
+from pytket.passes.auto_rebase import NoAutoRebase, auto_rebase_pass
 from pytket.phir.qtm_machine import QTM_DEFAULT_GATESET, QTM_MACHINES_MAP, QtmMachine
 
 if TYPE_CHECKING:
     from pytket.circuit import Circuit
 
 
+@deal.raises(NoAutoRebase)
+@deal.has()
 def rebase_to_qtm_machine(circuit: "Circuit", qtm_machine: QtmMachine) -> "Circuit":
     """Rebases a circuit's gate to the gate set appropriate for the given machine."""
     machine = QTM_MACHINES_MAP.get(qtm_machine)

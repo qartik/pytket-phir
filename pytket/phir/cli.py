@@ -6,25 +6,24 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
 # ruff: noqa: T201
 
 import logging
 from argparse import ArgumentParser
 from importlib.metadata import version
 
+import deal
 from pecos.engines.hybrid_engine import HybridEngine  # type:ignore [import-not-found]
 from pecos.foreign_objects.wasmtime import WasmtimeObj  # type:ignore [import-not-found]
 
-from pytket.qasm.qasm import (
-    circuit_from_qasm,
-    circuit_from_qasm_wasm,
-)
+from pytket.qasm.qasm import QASMParseError, circuit_from_qasm, circuit_from_qasm_wasm
 
 from .api import pytket_to_phir
 from .qtm_machine import QtmMachine
 
 
+@deal.has("global", "io", "read", "stdout")
+@deal.raises(AssertionError, QASMParseError, TypeError)
 def main() -> None:
     """pytket-phir compiler CLI."""
     parser = ArgumentParser(

@@ -6,15 +6,17 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import logging
+
+import deal
 
 from .test_utils import QasmFile, get_phir_json
 
 logger = logging.getLogger(__name__)
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_parallelization() -> None:
     """Make sure the parallelization is happening properly for the test circuit."""
     phir = get_phir_json(QasmFile.parallelization_test, rebase=True)
@@ -57,6 +59,8 @@ def test_parallelization() -> None:
     assert measure_args.index(["q", 3]) == measure_returns.index(["c", 3])
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_parallel_subcommand_relative_ordering() -> None:
     """Make sure the proper relative ordering of sub-commands is preserved."""
     phir = get_phir_json(QasmFile.rxrz, rebase=True)
@@ -76,6 +80,8 @@ def test_parallel_subcommand_relative_ordering() -> None:
     assert frth_sc["angles"] == [[3.5], "pi"]
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_single_qubit_circuit_with_parallel() -> None:
     """Make sure there are no parallel blocks present in the 1qubit circuit."""
     phir_with_parallel_phirgen = get_phir_json(
@@ -105,6 +111,8 @@ def test_single_qubit_circuit_with_parallel() -> None:
         )
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_two_qubit_exec_order_preserved() -> None:
     """Test that the order of gating in preserved in a 2 qubit circuit."""
     phir = get_phir_json(QasmFile.exec_order_two_qubits, rebase=True)

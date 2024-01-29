@@ -9,6 +9,8 @@
 import logging
 from typing import cast
 
+import deal
+
 from pytket.circuit import Circuit, Command, Conditional, Op, OpType
 from pytket.unit_id import Bit, Qubit, UnitID
 
@@ -39,6 +41,7 @@ class Sharder:
     compilation pipeline.
     """
 
+    @deal.pure
     def __init__(self, circuit: Circuit) -> None:
         """Create Sharder object.
 
@@ -55,6 +58,7 @@ class Sharder:
 
         logger.debug("Sharder created for circuit %s", self._circuit)
 
+    @deal.pure
     def shard(self) -> list[Shard]:
         """Performs sharding algorithm on the circuit the Sharder was initialized with.
 
@@ -78,6 +82,8 @@ class Sharder:
             logger.debug(shard)
         return self._shards
 
+    @deal.has()
+    @deal.raises(NotImplementedError)
     def _process_command(self, command: Command) -> None:
         """Handles a command per the type and the extant context within the Sharder.
 
@@ -94,15 +100,16 @@ class Sharder:
             msg = f"OpType {command.op.type} not supported!"
             raise NotImplementedError(msg)
 
-        if self._is_command_global_phase(command):
+        if Sharder._is_command_global_phase(command):
             logger.debug("Ignoring global Phase gate")
             return
 
-        if self.should_op_create_shard(command.op):
+        if Sharder.should_op_create_shard(command.op):
             self._build_shard(command)
         else:
             self._add_pending_sub_command(command)
 
+    @deal.pure
     def _build_shard(self, command: Command) -> None:
         """Builds a shard.
 
@@ -132,7 +139,7 @@ class Sharder:
         for sub_command in all_commands:
             bits_written.update(sub_command.bits)
             bits_read.update(
-                set(filter(lambda x: isinstance(x, Bit), sub_command.args)),  # type: ignore [misc, arg-type]
+                set(filter(lambda x: isinstance(x, Bit), sub_command.args)),  # type: ignore [arg-type]
             )
 
         # Handle dependency calculations
@@ -154,6 +161,7 @@ class Sharder:
         self._shards.append(shard)
         logger.debug("Appended shard: %s", shard)
 
+    @deal.pure
     def _resolve_shard_dependencies(
         self, qubits: set[Qubit], bits_written: set[Bit], bits_read: set[Bit]
     ) -> set[int]:
@@ -206,6 +214,7 @@ class Sharder:
 
         return depends_upon
 
+    @deal.pure
     def _mark_dependencies(
         self,
         shard: Shard,
@@ -226,6 +235,7 @@ class Sharder:
             self._bit_read_by[bit] = shard.ID
         logger.debug("... dependencies marked")
 
+    @deal.pure
     def _cleanup_remaining_commands(self) -> None:
         """Cleans up any remaining subcommands.
 
@@ -245,6 +255,7 @@ class Sharder:
             barrier_command = self._circuit.get_commands()[-1]
             self._build_shard(barrier_command)
 
+    @deal.pure
     def _add_pending_sub_command(self, command: Command) -> None:
         """Adds a pending command.
 
@@ -260,6 +271,7 @@ class Sharder:
         self._pending_commands[qubit_key].append(command)
         logger.debug("Added pending sub-command %s", command)
 
+    @deal.pure
     @staticmethod
     def should_op_create_shard(op: Op) -> bool:
         """Decide whether to create a shard.
@@ -281,6 +293,7 @@ class Sharder:
             or (op.is_gate() and op.n_qubits > 1)
         )
 
+    @deal.pure
     @staticmethod
     def _is_command_global_phase(command: Command) -> bool:
         """Check if an operation related to global phase.

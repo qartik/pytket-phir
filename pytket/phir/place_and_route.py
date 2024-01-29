@@ -8,6 +8,8 @@
 
 from typing import TYPE_CHECKING
 
+import deal
+
 from .placement import optimized_place
 from .routing import transport_cost
 from .sharding.shards2ops import parse_shards_naive
@@ -17,6 +19,7 @@ if TYPE_CHECKING:
     from .sharding.shard import Cost, Ordering, Shard, ShardLayer
 
 
+@deal.pure
 def place_and_route(
     shards: list["Shard"],
     machine: "Machine | None" = None,

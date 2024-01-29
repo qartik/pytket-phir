@@ -8,12 +8,14 @@
 
 # Tests for qubit routing
 
+import deal
 import pytest
 
 from pytket.phir.machine import Machine, MachineTimings
 from pytket.phir.placement import (
     GateOpportunitiesError,
     InvalidParallelOpsError,
+    PlacementCheckError,
     place,
     placement_check,
 )
@@ -24,6 +26,8 @@ m2 = Machine(6, QTM_DEFAULT_GATESET, {1, 3}, MachineTimings(10, 2, 2))
 m3 = Machine(8, QTM_DEFAULT_GATESET, {0, 6}, MachineTimings(10, 2, 2))
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_placement_check() -> None:
     """Test placement check."""
     # simple tq check
@@ -59,6 +63,15 @@ def test_placement_check() -> None:
     assert not placement_check(ops, m2.tq_options, m2.sq_options, state)
 
 
+@deal.has("io")
+@deal.raises(
+    AssertionError,
+    GateOpportunitiesError,
+    InvalidParallelOpsError,
+    PlacementCheckError,
+    ValueError,
+    ZeroDivisionError,
+)
 def test_place() -> None:
     """Test place."""
     # one tq

@@ -8,7 +8,10 @@
 
 import logging
 
+import deal
+
 from pytket.circuit import Circuit, OpType
+from pytket.passes.auto_rebase import NoAutoRebase
 from pytket.phir.qtm_machine import QtmMachine
 from pytket.phir.rebasing.rebaser import rebase_to_qtm_machine
 
@@ -26,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 class TestRebaser:
+    @deal.has()
+    @deal.raises(AssertionError, NoAutoRebase)
     def test_rebaser_happy_path_arc1a(self) -> None:
         circ = get_qasm_as_circuit(QasmFile.baby)
         rebased: Circuit = rebase_to_qtm_machine(circ, QtmMachine.H1_1)

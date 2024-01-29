@@ -1,4 +1,5 @@
 build==1.0.3
+deal[all]==4.24.3
 mypy==1.8.0
 networkx==2.8.8
 phir==0.2.1

@@ -6,14 +6,15 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import base64
 import hashlib
 import json
 import logging
+from json import JSONDecodeError
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+
+import deal
 
 from pytket.circuit import Circuit
 from pytket.phir.api import pytket_to_phir, qasm_to_phir
@@ -26,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 
 class TestWASM:
+    @deal.has("global", "stdout")
+    @deal.raises(AssertionError, JSONDecodeError, KeyError, TypeError)
     def test_qasm_to_phir_with_wasm(self) -> None:
         """Test the qasm string entrypoint works with WASM."""
         qasm = """
@@ -62,6 +65,8 @@ class TestWASM:
             "returns": ["co"],
         }
 
+    @deal.has()
+    @deal.raises(AssertionError, JSONDecodeError, TypeError)
     def test_pytket_with_wasm(self) -> None:
         wasm_bytes = get_wat_as_wasm_bytes(WatFile.testfile)
         phir_str: str

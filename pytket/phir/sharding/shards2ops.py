@@ -8,12 +8,15 @@
 
 from typing import TYPE_CHECKING, TypeAlias
 
+import deal
+
 if TYPE_CHECKING:
     from .shard import Shard, ShardLayer
 
 Layer: TypeAlias = list[list[int]]
 
 
+@deal.pure
 def parse_shards_naive(
     shards: set["Shard"],
 ) -> tuple[list[Layer], list["ShardLayer"]]:

@@ -8,17 +8,20 @@
 
 import json
 from enum import Enum, auto
+from json import JSONDecodeError
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from wasmtime import wat2wasm
+import deal
+from wasmtime import WasmtimeError, wat2wasm
 
+from pytket.passes.auto_rebase import NoAutoRebase
 from pytket.phir.phirgen_parallel import genphir_parallel
 from pytket.phir.place_and_route import place_and_route
 from pytket.phir.qtm_machine import QTM_MACHINES_MAP, QtmMachine
 from pytket.phir.rebasing.rebaser import rebase_to_qtm_machine
 from pytket.phir.sharding.sharder import Sharder
-from pytket.qasm.qasm import circuit_from_qasm
+from pytket.qasm.qasm import QASMParseError, circuit_from_qasm
 
 if TYPE_CHECKING:
     from pytket.circuit import Circuit
@@ -54,6 +57,8 @@ class WatFile(Enum):
     testfile = auto()
 
 
+@deal.has("read")
+@deal.raises(QASMParseError, TypeError)
 def get_qasm_as_circuit(qasm_file: QasmFile) -> "Circuit":
     """Utility function to convert a QASM file to Circuit.
 
@@ -67,6 +72,8 @@ def get_qasm_as_circuit(qasm_file: QasmFile) -> "Circuit":
     return circuit_from_qasm(f"{this_dir}/data/qasm/{qasm_file.name}.qasm")
 
 
+@deal.has("io")
+@deal.raises(AssertionError, JSONDecodeError, NoAutoRebase, TypeError, QASMParseError)
 def get_phir_json(qasmfile: QasmFile, *, rebase: bool) -> "JsonDict":
     """Get the QASM file for the specified circuit."""
     qtm_machine = QtmMachine.H1_1
@@ -77,9 +84,11 @@ def get_phir_json(qasmfile: QasmFile, *, rebase: bool) -> "JsonDict":
     assert machine
     shards = Sharder(circuit).shard()
     placed = place_and_route(shards, machine)
-    return json.loads(genphir_parallel(placed, machine))  # type: ignore[misc, no-any-return]
+    return json.loads(genphir_parallel(placed, machine))  # type: ignore[no-any-return]
 
 
+@deal.has()
+@deal.raises(WasmtimeError._from_ptr)  # type: ignore[arg-type] # noqa: SLF001
 def get_wat_as_wasm_bytes(wat_file: WatFile) -> bytes:
     """Gets a given wat file, converted to WASM bytes by wasmtime."""
     this_dir = Path(Path(__file__).resolve()).parent

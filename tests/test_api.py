@@ -6,11 +6,11 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import json
 import logging
+from json import JSONDecodeError
 
+import deal
 import pytest
 
 from pytket.circuit import Bit, Circuit
@@ -23,11 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 class TestApi:
+    @deal.has("stdout")
+    @deal.raises(AssertionError, KeyError)
     def test_pytket_to_phir_no_machine(self) -> None:
         """Test case when no machine is present."""
         circuit = get_qasm_as_circuit(QasmFile.baby)
         assert pytket_to_phir(circuit)
 
+    @deal.has("stdout")
+    @deal.raises(KeyError, AssertionError)
     @pytest.mark.parametrize("test_file", list(QasmFile))
     def test_pytket_to_phir_no_machine_all(self, test_file: QasmFile) -> None:
         """Test case when no machine is present."""
@@ -43,6 +47,8 @@ class TestApi:
             case _:
                 assert pytket_to_phir(circuit)
 
+    @deal.has("stdout")
+    @deal.raises(AssertionError, KeyError)
     @pytest.mark.parametrize("test_file", list(QasmFile))
     def test_pytket_to_phir_h1_1_all(self, test_file: QasmFile) -> None:
         """Standard case."""
@@ -50,6 +56,8 @@ class TestApi:
 
         assert pytket_to_phir(circuit, QtmMachine.H1_1)
 
+    @deal.has("stdout")
+    @deal.raises(AssertionError, JSONDecodeError, KeyError, TypeError)
     def test_pytket_classical_only(self) -> None:
         c = Circuit(1)
         a = c.add_c_register("a", 2)
@@ -71,6 +79,8 @@ class TestApi:
             "args": [["b", 2], ["a", 1]],
         }
 
+    @deal.has("global", "stdout")
+    @deal.raises(AssertionError, KeyError)
     def test_qasm_to_phir(self) -> None:
         """Test the qasm string entrypoint works."""
         qasm = """

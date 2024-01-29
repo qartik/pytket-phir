@@ -6,13 +6,12 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import logging
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 
+import deal
 from rich import print
 
 from phir.model import PHIRModel
@@ -33,6 +32,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@deal.has("stdout")
+@deal.raises(KeyError)
 def pytket_to_phir(circuit: "Circuit", qtm_machine: QtmMachine | None = None) -> str:
     """Converts a pytket circuit into its PHIR representation.
 
@@ -74,6 +75,8 @@ def pytket_to_phir(circuit: "Circuit", qtm_machine: QtmMachine | None = None) ->
     return phir_json
 
 
+@deal.has("global", "stdout")
+@deal.raises(AssertionError, KeyError)
 def qasm_to_phir(
     qasm: str,
     qtm_machine: QtmMachine | None = None,

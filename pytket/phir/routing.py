@@ -8,10 +8,13 @@
 
 from __future__ import annotations
 
+import deal
+
 
 class TransportError(Exception):
     """Error raised by inverse() util function."""
 
+    @deal.pure
     def __init__(self, a: list[int], b: list[int]):
         super().__init__(f"Traps different sizes: {len(a)} vs. {len(b)}")
 
@@ -19,10 +22,13 @@ class TransportError(Exception):
 class PermutationError(Exception):
     """Error raised by inverse() util function."""
 
+    @deal.pure
     def __init__(self, lst: list[int]):
         super().__init__(f"List {lst} is not a permutation of range({len(lst)})")
 
 
+@deal.has()
+@deal.raises(PermutationError)
 def inverse(lst: list[int]) -> list[int]:
     """Inverse of a permutation list.
 
@@ -38,6 +44,8 @@ def inverse(lst: list[int]) -> list[int]:
     return inv
 
 
+@deal.has()
+@deal.raises(PermutationError, TransportError)
 def transport_cost(init: list[int], goal: list[int], swap_cost: float) -> float:
     """Cost of transport from init to goal.
 

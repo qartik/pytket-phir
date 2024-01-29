@@ -6,15 +6,17 @@
 #
 ##############################################################################
 
-# mypy: disable-error-code="misc"
-
 import logging
+
+import deal
 
 from .test_utils import QasmFile, get_phir_json
 
 logger = logging.getLogger(__name__)
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_pll_tk2_same_angle() -> None:
     """Make sure the parallelization is correct for the tk2_same_angle circuit."""
     phir = get_phir_json(QasmFile.tk2_same_angle, rebase=False)
@@ -43,6 +45,8 @@ def test_pll_tk2_same_angle() -> None:
     assert measure_args.index(["q", 3]) == measure_returns.index(["c", 3])
 
 
+@deal.has("io")
+@deal.raises(AssertionError)
 def test_pll_tk2_diff_angles() -> None:
     """Make sure the parallelization is correct for the tk2_diff_angles circuit."""
     phir = get_phir_json(QasmFile.tk2_diff_angles, rebase=False)
